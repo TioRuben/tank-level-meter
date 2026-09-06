@@ -1,7 +1,7 @@
 # Tank Level Sensor Protocol Draft
 
-This is the Phase 0 contract for the future BLE peripheral and Web Bluetooth
-client. UUIDs and payloads remain draft until the BLE phase freezes them.
+This is the implemented v1 contract for the BLE peripheral and Web Bluetooth
+client. Keep firmware and `web/index.html` synchronized when changing it.
 
 ## Device
 
@@ -23,8 +23,9 @@ Base UUID: `0000xxxx-0000-1000-8000-00805f9b34fb`
 | Status | `0000a103-0000-1000-8000-00805f9b34fb` | Read, notify |
 | Info | `0000a104-0000-1000-8000-00805f9b34fb` | Read |
 
-The BLE phase must verify that the advertising name and custom UUID format are
-usable by the target Web Bluetooth browser before freezing this contract.
+The complete device name is sent in the scan response because the primary
+advertisement also carries the 128-bit service UUID. This has been verified
+with nRF Connect and Chrome Web Bluetooth.
 
 ## Measurement snapshot draft
 

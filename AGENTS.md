@@ -7,9 +7,10 @@ T-Energy board with an ESP32-WROVER-B module. The product goal is to read a
 ZCT-YOF07-C001 / ZCT-YLOC1 non-contact liquid-level sensor over I2C and expose
 readings and supported actions over BLE to a Web Bluetooth companion page.
 
-The repository contains a modular I2C sensor-reading baseline. BLE,
-calibration, and the web client are not implemented yet. Do not assume those
-features already exist.
+The repository contains a modular I2C sensor-reading and BLE baseline. The
+remote Web Bluetooth client is implemented in `web/index.html`. Calibration
+logic exists behind the sensor layer but is intentionally deferred from BLE
+because the sensor is currently being used with its factory calibration.
 
 ## Non-negotiable constraints
 

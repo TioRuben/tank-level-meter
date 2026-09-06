@@ -5,10 +5,10 @@ ZCT-YOF07-C001 (also marked ZCT-YLOC1) non-contact liquid-level sensor over I2C
 and exposes the sensor through Bluetooth Low Energy (BLE) to a companion Web
 Bluetooth page.
 
-The current firmware includes an I2C connection smoke test. It probes the
+The current firmware includes I2C sampling and BLE GATT communications. It probes the
 reported sensor address and reads the four bytes described in [SENSOR.md](SENSOR.md)
-once per second after the sensor startup delay. BLE and the web client are
-still planned work.
+once per second after the sensor startup delay, then publishes readings to the
+remote Web Bluetooth client in `web/index.html`.
 
 This is just a test with a board I had in hand. The definitive one will use an smaller ESP32 RISC V module and will communicate with CAN Bus.
 
@@ -111,40 +111,58 @@ local file may not be sufficient in every browser.
 
 ```text
 .
-├── CMakeLists.txt              ESP-IDF project definition
-├── sdkconfig                   ESP-IDF 5.4 project configuration
-├── main/
-│   ├── CMakeLists.txt          Main component definition
-│   └── main.c                  Current I2C sensor probe entry point
-├── BOARD.md                    TTGO T-Energy board and pin reference
-├── SENSOR.md                   Sensor specification and known gaps
-├── PROTOCOL.md                 Draft BLE and sensor integration contract
+├── main/                       ESP-IDF firmware
+│   ├── i2c_bus.c/.h            I2C bus and device setup
+│   ├── sensor.c/.h             Sampling and deferred calibration API
+│   ├── ble.c/.h                NimBLE GATT peripheral
+│   └── main.c                  Application entry point
+├── web/index.html              Remote Web Bluetooth client
+├── PROTOCOL.md                 Implemented BLE contract
+├── BOARD.md                    TTGO T-Energy reference
+├── SENSOR.md                   Sensor protocol and open hardware questions
 ├── .plan/                      Phased implementation plan
-├── AGENTS.md                   Instructions for AI coding agents
-└── README.md                  This project overview
+└── AGENTS.md                   Repository instructions
 ```
 
-├── CMakeLists.txt              Main component definition
-├── sdkconfig                   ESP-IDF 5.4 project configuration
-├── main/
-│   ├── CMakeLists.txt          Main component definition
-│   ├── i2c_bus.c/.h            I2C bus and device setup
-│   ├── sensor.c/.h             Sampling task and latest snapshot API
-│   └── main.c                  Application entry point
+## Build, flash, and monitor
+
+Use the ESP-IDF 5.4 environment with the target set to the classic ESP32:
+
+```powershell
 idf.py set-target esp32
 idf.py build
 idf.py -p COMx flash monitor
 ```
 
-Replace `COMx` with the board's serial port. After flashing, monitor the serial
-output. The sampling task waits at least 600 ms after initialization, then logs
-the level byte and all four bytes once per second. An absent, incorrectly wired,
-or unpowered sensor produces a read error while the task continues running. This
-does not verify calibration commands or BLE behavior.
+Replace `COMx` with the board's serial port. The sampling task waits at least
+600 ms after initialization, then logs the level byte and all four bytes once
+per second. An absent, incorrectly wired, or unpowered sensor produces a read
+error while the task continues running. The firmware advertises as `H4_R_Tank`
+and publishes level/status notifications over BLE.
 
 The sampler uses the native ESP-IDF I2C master driver at 100 kHz with GPIO21 as
 SDA, GPIO22 as SCL, and internal pull-ups disabled. Provide external pull-ups
 to 3.3 V when the sensor/carrier does not already include them.
+
+## Web client
+
+The ESP32 does not host the page. Serve the repository from a static HTTPS host
+or localhost, then open:
+
+```text
+http://localhost:5500/web/index.html
+```
+
+The page requires a Web Bluetooth-capable Chromium browser. It connects to
+`H4_R_Tank`, subscribes to measurement/status notifications, and displays raw
+sensor health. Calibration writes remain disabled while factory calibration is
+used.
+
+The repository includes a GitHub Pages deployment workflow. After enabling
+Pages with **GitHub Actions** as the source in the repository settings, pushes
+to `master` publish the page at:
+
+<https://tioruben.github.io/tank-level-meter/>
 
 ## Engineering constraints
 

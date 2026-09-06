@@ -27,30 +27,29 @@ Locked choices: [decisions.md](decisions.md). Vendor I2C reconstruction:
 | ESP-IDF 5.4 C project, target `esp32` | Present |
 | I2C master on GPIO21 (SDA) / GPIO22 (SCL) at 100 kHz | Present in `main/main.c` |
 | Probe of address `0x40`, 4-byte read from register `0x00` | Present (reported spec; treat as hardware-verified only if logs confirm it) |
-| BLE enabled in `sdkconfig` | **Not enabled** (`CONFIG_BT_ENABLED` is unset) |
+| BLE enabled in `sdkconfig` | NimBLE peripheral enabled; Wi-Fi unused |
 | PSRAM enabled | **Not enabled** |
 | Calibration commands | **Reported** in vendor pack (`0xCA`/`0x8C`); not hardware-verified |
-| BLE UUID contract | **Draft only** (Phase 0) |
-| Web client | **Not present** (planned `web/index.html`) |
+| BLE UUID contract | Implemented in [PROTOCOL.md](../PROTOCOL.md) and firmware |
+| Web client | Implemented in `web/index.html`; live Chrome test passed |
 | Wi-Fi requirement | None; should remain disabled |
 | GAP name | Locked: `ECHH4_R_Tank` |
 | BLE pairing | Locked: open GATT, no bonding |
 | Disconnect mid-calibration | Locked: cancel immediately |
 
-`AGENTS.md` still describes a `hello_world` baseline. The repository has
-already moved to an I2C smoke test. Update that document when implementation
-starts.
+The repository has moved beyond the original hello-world baseline. Firmware,
+BLE, and the remote web client are implemented; calibration remains deferred.
 
 ## Phase index
 
 | Phase | File | Goal | Can start now? |
 | --- | --- | --- | --- |
-| 0 | [00-foundations.md](00-foundations.md) | Architecture, BLE contract freeze, Wi-Fi off | In progress: `PROTOCOL.md` draft |
-| 1 | [01-sensor-reading.md](01-sensor-reading.md) | Structured, periodic, health-aware sensor reads | In progress: modular sampler implemented |
+| 0 | [00-foundations.md](00-foundations.md) | Architecture, BLE contract freeze, Wi-Fi off | Complete |
+| 1 | [01-sensor-reading.md](01-sensor-reading.md) | Structured, periodic, health-aware sensor reads | Complete; hardware readings observed |
 | 2 | [02-calibration.md](02-calibration.md) | 3-step state machine using reported `0xCA`/`0x8C` | Implemented but deferred from BLE; hardware persistence unverified |
-| 3 | [03-ble.md](03-ble.md) | BLE peripheral, GATT service, no Wi-Fi | Implemented; hardware/client validation pending |
-| 4 | [04-web-client.md](04-web-client.md) | `web/index.html` for remote HTTPS host | After Phase 3 UUID freeze |
-| 5 | [05-integration.md](05-integration.md) | End-to-end checks, docs, leftover hello_world cleanup | After Phases 1–4 |
+| 3 | [03-ble.md](03-ble.md) | BLE peripheral, GATT service, no Wi-Fi | Complete; nRF Connect verified |
+| 4 | [04-web-client.md](04-web-client.md) | `web/index.html` for remote HTTPS host | Complete; Chrome localhost verified |
+| 5 | [05-integration.md](05-integration.md) | End-to-end checks and documentation | Complete; calibration deferred |
 
 ## Hard constraints
 

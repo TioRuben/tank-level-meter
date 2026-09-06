@@ -2,7 +2,8 @@
 
 **Goal:** One HTML file (inline CSS + JS) that connects to the ESP32, shows
 level/health, and walks calibration.
-**Depends on:** Frozen `PROTOCOL.md` / Phase 3 UUIDs.
+**Depends on:** Frozen `PROTOCOL.md` / Phase 3 UUIDs. The first client now
+targets the working read-only path; calibration controls remain deferred.
 **Not on the ESP32.** Served from a remote HTTPS server or `localhost`.
 
 ## Constraints
@@ -28,15 +29,10 @@ as-is). Owner confirmed this file lives in the repository.
    - Raw bytes 1–3 in hex
    - Health (I2C ok / fail count / stale)
    - Last update age (detect silent link death)
-3. **Calibration wizard**
-   - Show current firmware calibration state
-   - Start session
-   - Step 1 empty/dry → confirm → commit
-   - Step 2 zero mark (warn: not dry) → confirm → commit
-   - Step 3 full mark → confirm → commit
-   - Cancel
-   - If firmware returns unsupported, show that clearly — do not pretend
-     the write succeeded
+3. **Calibration status**
+  - Show current firmware calibration state
+  - Explain that calibration is deferred while factory calibration is used
+  - Keep calibration writes disabled until the vendor handshake is verified
 4. **Log**
    - Short on-page event log (connect, notify, errors, opcodes)
 
@@ -83,3 +79,10 @@ No charts required for v1.
 - One HTML file in repo, UUIDs synchronized.
 - README explains HTTPS/`localhost` and supported browsers.
 - No Wi-Fi/HTTP code added to firmware to support the page.
+
+## Current implementation
+
+`web/index.html` now implements connect/disconnect, measurement and status
+notifications, firmware-info reading, raw REG1-3 display, health/staleness
+display, and harmless ping/sample controls. It uses the `H4_R_Tank` device
+name prefix and the UUIDs in [PROTOCOL.md](../PROTOCOL.md).

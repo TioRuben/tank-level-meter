@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102a2e">
+  <title>ECHH4 Tank Level</title>
+  <style>
+    :root {
+      --ink: #102a2e;
+      --muted: #65777a;
+      --line: #d9e2df;
+      --paper: #f5f7f1;
+      --panel: #ffffff;
+      --aqua: #0c8b87;
+      --aqua-dark: #076764;
+      --coral: #e4775e;
+      --ok: #23845d;
+      --warn: #b66a16;
+      --bad: #b33d3d;
+      --shadow: 0 18px 45px rgba(16, 42, 46, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 86% 8%, rgba(228, 119, 94, 0.16), transparent 26rem),
+        linear-gradient(135deg, #f5f7f1 0%, #e7f0eb 100%);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    button, code, .eyebrow, .label, .status, .metric small, .log {
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+    }
+
+    button {
+      border: 0;
+      border-radius: 5px;
+      padding: 0.78rem 1rem;
+      color: white;
+      background: var(--ink);
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    button:hover:not(:disabled) { background: var(--aqua-dark); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.secondary { color: var(--ink); background: #e5eeea; }
+    button.secondary:hover:not(:disabled) { background: #d4e4de; }
+
+    main { width: min(1120px, calc(100% - 2rem)); margin: 0 auto; padding: 2rem 0 3rem; }
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 2rem;
+      padding: 1rem 0 2rem;
+    }
+    .eyebrow { margin: 0 0 0.5rem; color: var(--aqua-dark); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2.35rem, 6vw, 5.2rem); line-height: 0.94; font-weight: 500; letter-spacing: 0; }
+    .lede { max-width: 28rem; margin: 0; color: var(--muted); font-size: 1.05rem; line-height: 1.5; }
+
+    .notice {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      padding: 0.9rem 1rem;
+      border-left: 4px solid var(--coral);
+      color: #704333;
+      background: #fff4e9;
+      font: 0.82rem/1.4 "Trebuchet MS", Verdana, sans-serif;
+    }
+    .notice.hidden { display: none; }
+
+    .toolbar, .panel { border: 1px solid rgba(16, 42, 46, 0.1); background: rgba(255, 255, 255, 0.86); box-shadow: var(--shadow); }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; }
+    .connection { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+    .dot { width: 0.7rem; height: 0.7rem; flex: 0 0 auto; border-radius: 50%; background: #9aa8a5; }
+    .dot.connected { background: var(--ok); box-shadow: 0 0 0 5px rgba(35, 132, 93, 0.14); }
+    .status { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.84rem; }
+    .toolbar-actions { display: flex; gap: 0.6rem; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr); gap: 1.25rem; margin-top: 1.25rem; }
+    .panel { padding: 1.25rem; }
+    .panel h2 { margin: 0 0 1rem; font-size: 1.2rem; font-weight: 500; }
+    .reading { position: relative; min-height: 22rem; overflow: hidden; }
+    .reading::after { content: ""; position: absolute; right: -5rem; bottom: -7rem; width: 18rem; height: 18rem; border: 2rem solid rgba(12, 139, 135, 0.09); border-radius: 50%; }
+    .level-row { display: flex; align-items: end; gap: 0.8rem; }
+    .level { font-size: clamp(5rem, 15vw, 10rem); line-height: 0.78; font-weight: 500; letter-spacing: 0; }
+    .level-unit { padding-bottom: 0.3rem; color: var(--muted); font: 0.8rem "Trebuchet MS", Verdana, sans-serif; }
+    .meter { height: 0.8rem; margin: 2.2rem 0 0.6rem; overflow: hidden; border-radius: 99px; background: #dce9e4; }
+    .meter-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--aqua), #58b69b); transition: width 500ms ease; }
+    .meter-label { display: flex; justify-content: space-between; color: var(--muted); font: 0.74rem "Trebuchet MS", Verdana, sans-serif; }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-top: 2.4rem; }
+    .metric { padding-top: 0.7rem; border-top: 1px solid var(--line); }
+    .metric strong { display: block; margin-top: 0.25rem; font-size: 1.2rem; font-weight: 500; }
+    .metric small { color: var(--muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .stack { display: grid; gap: 1.25rem; }
+    .data-list { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; margin: 0; font: 0.82rem "Trebuchet MS", Verdana, sans-serif; }
+    .data-list dt { color: var(--muted); }
+    .data-list dd { margin: 0; text-align: right; font-weight: 700; }
+    code { padding: 0.18rem 0.35rem; border-radius: 3px; color: var(--aqua-dark); background: #e6f2ed; font-size: 0.78rem; }
+    .health { display: inline-flex; align-items: center; gap: 0.4rem; }
+    .health::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--muted); }
+    .health.ok { color: var(--ok); }
+    .health.ok::before { background: var(--ok); }
+    .health.bad { color: var(--bad); }
+    .health.bad::before { background: var(--bad); }
+
+    .calibration { border-top: 4px solid var(--coral); }
+    .calibration p { margin: 0; color: var(--muted); font: 0.84rem/1.5 "Trebuchet MS", Verdana, sans-serif; }
+    .pill { display: inline-block; margin-bottom: 0.8rem; padding: 0.35rem 0.55rem; color: #7d4d20; background: #fff0d8; font: 700 0.68rem "Trebuchet MS", Verdana, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
+    .controls { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
+    .controls button { font-size: 0.75rem; }
+
+    .log-panel { margin-top: 1.25rem; }
+    .log { height: 8rem; overflow: auto; padding: 0.85rem; color: #476266; background: #eef4f0; font-size: 0.73rem; line-height: 1.7; }
+    .log p { margin: 0; }
+    footer { margin-top: 1rem; color: var(--muted); font: 0.72rem "Trebuchet MS", Verdana, sans-serif; }
+
+    @media (max-width: 760px) {
+      main { width: min(100% - 1rem, 600px); padding-top: 1rem; }
+      header { display: block; padding-bottom: 1.25rem; }
+      .lede { margin-top: 1rem; }
+      .toolbar { align-items: flex-start; flex-direction: column; }
+      .toolbar-actions { width: 100%; }
+      .toolbar-actions button { flex: 1; }
+      .layout { grid-template-columns: 1fr; }
+      .reading { min-height: 19rem; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">Right tank / BLE instrument</p>
+        <h1>H4_R_Tank</h1>
+      </div>
+      <p class="lede">A quiet window into the sensor: live level, link health, and the raw signal that arrived from the board.</p>
+    </header>
+
+    <div id="browserNotice" class="notice hidden" role="status">
+      <span>This browser does not expose Web Bluetooth. Use a supported Chromium browser over HTTPS or localhost.</span>
+    </div>
+
+    <section class="toolbar" aria-label="Connection">
+      <div class="connection">
+        <span id="connectionDot" class="dot"></span>
+        <span id="connectionStatus" class="status">Disconnected</span>
+      </div>
+      <div class="toolbar-actions">
+        <button id="connectButton" type="button">Connect</button>
+        <button id="disconnectButton" class="secondary" type="button" disabled>Disconnect</button>
+      </div>
+    </section>
+
+    <div class="layout">
+      <section class="panel reading" aria-labelledby="readingTitle">
+        <h2 id="readingTitle">Current level</h2>
+        <div class="level-row">
+          <div id="levelValue" class="level">--</div>
+          <div class="level-unit">out of 255</div>
+        </div>
+        <div class="meter" aria-hidden="true"><div id="meterFill" class="meter-fill"></div></div>
+        <div class="meter-label"><span>empty</span><span>full</span></div>
+        <div class="metrics">
+          <div class="metric"><small>Percent</small><strong id="percentValue">--</strong></div>
+          <div class="metric"><small>Estimated height</small><strong id="heightValue">--</strong></div>
+          <div class="metric"><small>Sequence</small><strong id="sequenceValue">--</strong></div>
+        </div>
+      </section>
+
+      <div class="stack">
+        <section class="panel" aria-labelledby="healthTitle">
+          <h2 id="healthTitle">Signal health</h2>
+          <dl class="data-list">
+            <dt>Sensor</dt><dd id="healthValue" class="health">Waiting</dd>
+            <dt>Last update</dt><dd id="ageValue">--</dd>
+            <dt>Calibration state</dt><dd id="calibrationValue">Unknown</dd>
+            <dt>Raw REG1-3</dt><dd><code id="rawValue">-- -- --</code></dd>
+          </dl>
+        </section>
+
+        <section class="panel calibration" aria-labelledby="calibrationTitle">
+          <span class="pill">Deferred</span>
+          <h2 id="calibrationTitle">Calibration</h2>
+          <p>The sensor is being used with its factory calibration. Calibration commands remain disabled until the vendor handshake is verified on this hardware.</p>
+          <div class="controls">
+            <button id="pingButton" class="secondary" type="button" disabled>Ping</button>
+            <button id="sampleButton" class="secondary" type="button" disabled>Request sample</button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <section class="panel log-panel" aria-labelledby="logTitle">
+      <h2 id="logTitle">Activity</h2>
+      <div id="log" class="log" aria-live="polite"></div>
+    </section>
+
+    <footer>Web Bluetooth requires a secure context. This page is designed to be served remotely and is never served by the ESP32.</footer>
+  </main>
+
+  <script>
+    'use strict';
+
+    const BLE = Object.freeze({
+      service: '0000a100-0000-1000-8000-00805f9b34fb',
+      measurement: '0000a101-0000-1000-8000-00805f9b34fb',
+      control: '0000a102-0000-1000-8000-00805f9b34fb',
+      status: '0000a103-0000-1000-8000-00805f9b34fb',
+      info: '0000a104-0000-1000-8000-00805f9b34fb',
+      commands: { ping: 0x00, sample: 0x06 }
+    });
+
+    const calibrationStates = [
+      'Idle', 'Waiting for empty', 'Waiting for zero scale', 'Waiting for full scale',
+      'Complete', 'Failed', 'Cancelled'
+    ];
+
+    const elements = {
+      notice: document.querySelector('#browserNotice'),
+      connect: document.querySelector('#connectButton'),
+      disconnect: document.querySelector('#disconnectButton'),
+      ping: document.querySelector('#pingButton'),
+      sample: document.querySelector('#sampleButton'),
+      dot: document.querySelector('#connectionDot'),
+      connection: document.querySelector('#connectionStatus'),
+      level: document.querySelector('#levelValue'),
+      meter: document.querySelector('#meterFill'),
+      percent: document.querySelector('#percentValue'),
+      height: document.querySelector('#heightValue'),
+      sequence: document.querySelector('#sequenceValue'),
+      health: document.querySelector('#healthValue'),
+      age: document.querySelector('#ageValue'),
+      calibration: document.querySelector('#calibrationValue'),
+      raw: document.querySelector('#rawValue'),
+      log: document.querySelector('#log')
+    };
+
+    let device = null;
+    let server = null;
+    let measurementCharacteristic = null;
+    let controlCharacteristic = null;
+    let statusCharacteristic = null;
+    let lastUpdate = 0;
+
+    function log(message, error = false) {
+      const line = document.createElement('p');
+      line.textContent = `${new Date().toLocaleTimeString()}  ${message}`;
+      if (error) line.style.color = '#b33d3d';
+      elements.log.prepend(line);
+    }
+
+    function setConnected(connected) {
+      elements.dot.classList.toggle('connected', connected);
+      elements.connection.textContent = connected ? `Connected: ${device?.name || 'H4_R_Tank'}` : 'Disconnected';
+      elements.connect.disabled = connected;
+      elements.disconnect.disabled = !connected;
+      elements.ping.disabled = !connected;
+      elements.sample.disabled = !connected;
+    }
+
+    function resetReading() {
+      elements.level.textContent = '--';
+      elements.meter.style.width = '0%';
+      elements.percent.textContent = '--';
+      elements.height.textContent = '--';
+      elements.sequence.textContent = '--';
+      elements.health.textContent = 'Waiting';
+      elements.health.className = 'health';
+      elements.age.textContent = '--';
+      elements.calibration.textContent = 'Unknown';
+      elements.raw.textContent = '-- -- --';
+      lastUpdate = 0;
+    }
+
+    function decodeMeasurement(event) {
+      const data = event.target.value;
+      if (data.byteLength < 9) throw new Error('Measurement payload is shorter than 9 bytes');
+      const protocol = data.getUint8(0);
+      const level = data.getUint8(1);
+      const raw = [data.getUint8(2), data.getUint8(3), data.getUint8(4)];
+      const health = data.getUint8(5);
+      const calibration = data.getUint8(6);
+      const sequence = data.getUint16(7, true);
+
+      if (protocol !== 1) log(`Unsupported measurement protocol ${protocol}`, true);
+      elements.level.textContent = level;
+      elements.meter.style.width = `${(level / 255) * 100}%`;
+      elements.percent.textContent = `${Math.round((level / 255) * 100)}%`;
+      elements.height.textContent = `${((level / 255) * 120).toFixed(1)} mm`;
+      elements.sequence.textContent = sequence;
+      elements.raw.textContent = raw.map(byte => byte.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+      elements.health.textContent = health & 0x01 ? (health & 0x02 ? 'I2C recovering' : 'I2C healthy') : 'I2C fault';
+      elements.health.className = `health ${health & 0x01 ? 'ok' : 'bad'}`;
+      elements.calibration.textContent = calibrationStates[calibration] || `State ${calibration}`;
+      lastUpdate = Date.now();
+    }
+
+    function decodeStatus(event) {
+      const data = event.target.value;
+      if (data.byteLength < 2) return;
+      const state = data.getUint8(0);
+      const commandStatus = data.getUint8(1);
+      elements.calibration.textContent = calibrationStates[state] || `State ${state}`;
+      if (commandStatus !== 0) log(`Firmware command status: 0x${commandStatus.toString(16).padStart(2, '0')}`, true);
+    }
+
+    function handleDisconnect() {
+      setConnected(false);
+      server = null;
+      measurementCharacteristic = null;
+      controlCharacteristic = null;
+      statusCharacteristic = null;
+      resetReading();
+      log('Device disconnected');
+    }
+
+    async function connect() {
+      let stage = 'device chooser';
+      try {
+        log('Opening Bluetooth device chooser');
+        device = await navigator.bluetooth.requestDevice({
+          filters: [{ services: [BLE.service] }, { namePrefix: 'ECHH4_R_' }],
+          optionalServices: [BLE.service]
+        });
+        log(`Selected ${device.name || 'unnamed device'}`);
+        stage = 'GATT connection';
+        device.addEventListener('gattserverdisconnected', handleDisconnect);
+        server = await device.gatt.connect();
+        stage = 'service lookup';
+        const service = await server.getPrimaryService(BLE.service);
+        stage = 'characteristic lookup';
+        const characteristics = await service.getCharacteristics();
+        const available = characteristics.map(characteristic => characteristic.uuid.toLowerCase());
+        log(`Discovered characteristics: ${available.join(', ')}`);
+        const characteristicByUuid = new Map(characteristics.map(characteristic => [characteristic.uuid.toLowerCase(), characteristic]));
+        measurementCharacteristic = characteristicByUuid.get(BLE.measurement);
+        controlCharacteristic = characteristicByUuid.get(BLE.control);
+        statusCharacteristic = characteristicByUuid.get(BLE.status);
+        const infoCharacteristic = characteristicByUuid.get(BLE.info);
+        if (!measurementCharacteristic || !controlCharacteristic || !statusCharacteristic || !infoCharacteristic) {
+          throw new Error(`Expected GATT characteristic is missing; available: ${available.join(', ')}`);
+        }
+
+        stage = 'measurement notifications';
+        measurementCharacteristic.addEventListener('characteristicvaluechanged', decodeMeasurement);
+        await measurementCharacteristic.startNotifications();
+        stage = 'status notifications';
+        statusCharacteristic.addEventListener('characteristicvaluechanged', decodeStatus);
+        await statusCharacteristic.startNotifications();
+        stage = 'firmware info read';
+        const info = await infoCharacteristic.readValue();
+        log(`Connected to ${device.name || 'H4_R_Tank'} (${new TextDecoder().decode(info)})`);
+        setConnected(true);
+      } catch (error) {
+        const message = stage === 'device chooser' && error.name === 'NotFoundError'
+          ? 'Device chooser cancelled'
+          : `${stage} failed: ${error.name}: ${error.message || 'unknown error'}`;
+        log(message, true);
+        handleDisconnect();
+      }
+    }
+
+    async function disconnect() {
+      if (device?.gatt?.connected) device.gatt.disconnect();
+      else handleDisconnect();
+    }
+
+    async function sendCommand(name, opcode) {
+      if (!controlCharacteristic) return;
+      try {
+        await controlCharacteristic.writeValueWithResponse(new Uint8Array([opcode]));
+        log(`${name} sent`);
+      } catch (error) {
+        log(`${name} failed: ${error.message}`, true);
+      }
+    }
+
+    elements.connect.addEventListener('click', connect);
+    elements.disconnect.addEventListener('click', disconnect);
+    elements.ping.addEventListener('click', () => sendCommand('Ping', BLE.commands.ping));
+    elements.sample.addEventListener('click', () => sendCommand('Sample request', BLE.commands.sample));
+
+    if (!navigator.bluetooth) {
+      elements.notice.classList.remove('hidden');
+      elements.connect.disabled = true;
+      log('Web Bluetooth is unavailable in this browser', true);
+    } else {
+      log('Ready to connect');
+    }
+
+    setInterval(() => {
+      if (!lastUpdate || !server) return;
+      const age = Math.floor((Date.now() - lastUpdate) / 1000);
+      elements.age.textContent = `${age}s ago`;
+      if (age > 3) elements.health.className = 'health bad';
+    }, 1000);
+  </script>
+</body>
+</html>
