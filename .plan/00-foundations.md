@@ -55,7 +55,7 @@ alternative.
 
 | Item | Proposal |
 | --- | --- |
-| Device name | `ECHH4 Right Tank Level` (locked) |
+| Device name | `ECHH4_R_Tank` (locked) |
 | Appearance | Unknown / generic |
 | Security | Open GATT, no bonding (locked). |
 | Connections | 1 central |

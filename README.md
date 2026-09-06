@@ -10,6 +10,8 @@ reported sensor address and reads the four bytes described in [SENSOR.md](SENSOR
 once per second after the sensor startup delay. BLE and the web client are
 still planned work.
 
+This is just a test with a board I had in hand. The definitive one will use an smaller ESP32 RISC V module and will communicate with CAN Bus.
+
 ## Project goals
 
 - Use native ESP-IDF C APIs and FreeRTOS. Arduino APIs and Arduino libraries
@@ -79,12 +81,11 @@ The sensor documentation describes a three-stage calibration process:
 3. Liquid at the full-scale mark: store the full thresholds (`TH0F` and
      `TH1F`).
 
-The production firmware will expose calibration as explicit, stateful BLE
-actions and report progress, errors, and completion. The reported `0xCA` and
-`0x8C` host handshakes are isolated behind the sensor layer and must be
-verified on hardware before calibration is considered working. Calibration is
-cancelled if the BLE client disconnects and is protected from accidental
-activation.
+The firmware contains the reported calibration state machine in the sensor
+layer, but calibration is currently deferred because the sensor appears to
+arrive factory-calibrated. BLE calibration commands return unsupported and do
+not write the sensor. The future calibration work must still verify the
+handshake and threshold persistence without PRG.
 
 ## BLE and Web Bluetooth direction
 
@@ -98,7 +99,7 @@ central. The future GATT contract should include:
 - Explicit response/error data so the web client does not need to infer state
     from timing.
 
-The planned device name is `ECHH4 Right Tank Level`, with open GATT and no
+The planned device name is `ECHH4_R_Tank`, with open GATT and no
 pairing. The companion HTML client will use Web Bluetooth, display connection
 and sensor state clearly, subscribe to notifications, and guide the operator
 through calibration. It will live at `web/index.html` and be served remotely;

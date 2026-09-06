@@ -45,7 +45,7 @@ No charts required for v1.
 ## Client logic
 
 - Request device with `filters` on the service UUID and/or
-  `namePrefix: 'ECHH4'` (full name `ECHH4 Right Tank Level`) **and**
+  `namePrefix: 'H4_R_'` (full name `ECHH4_R_Tank`) **and**
   `optionalServices` as needed.
 - After connect: get service, start measurement + status notifications,
   read info once.

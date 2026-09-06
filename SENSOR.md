@@ -101,9 +101,11 @@ For continuous level calibration, the reported channel mapping is:
 | Full scale / `TH0F` | 1 | 3 |
 | Full scale / `TH1F` | 2 | 4 |
 
-These commands must be verified on the actual sensor at 3.3 V before being
-considered production-ready. Factory programming routines involving PRG/VPP
-and 9.2 V are not part of this project and must never be used for calibration.
+The firmware implements these commands behind an explicit calibration state
+machine, but they must still be verified on the actual sensor at 3.3 V before
+being considered production-ready. Factory programming routines involving
+PRG/VPP and 9.2 V are not part of this project and must never be used for
+calibration.
 
 ---
 

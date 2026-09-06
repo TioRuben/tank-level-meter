@@ -5,7 +5,7 @@ client. UUIDs and payloads remain draft until the BLE phase freezes them.
 
 ## Device
 
-- BLE peripheral name: `ECHH4 Right Tank Level`
+- BLE peripheral name: `ECHH4_R_Tank`
 - Security: open GATT, no pairing or bonding
 - Connections: one central
 - Wi-Fi: disabled and not used
@@ -55,8 +55,11 @@ consecutive read failures. Other bits are reserved.
 | `0x06` | Request immediate sample |
 
 Calibration commits are rejected unless the state machine expects that step.
-BLE disconnect cancels calibration immediately. Firmware never writes sensor
-calibration registers from a BLE callback; it queues work for the sensor task.
+The calibration opcodes are reserved in the Phase 3 transport and currently
+return unsupported because calibration is intentionally deferred while the
+factory calibration is relied on. Firmware never writes sensor calibration
+registers from a BLE callback; future calibration work must be queued for the
+sensor layer.
 
 ## Sensor integration reference
 

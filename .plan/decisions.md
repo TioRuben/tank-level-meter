@@ -8,7 +8,7 @@ Locked unless the owner changes them.
 | HTML hosting | Remote HTTPS/`localhost` server. Firmware does not serve the page. |
 | HTML in repo | Yes: `web/index.html` (copy that file to the host). |
 | BLE security | Open GATT, no pairing/bonding. |
-| Advertising / GAP name | `ECHH4 Right Tank Level` |
+| Advertising / GAP name | `ECHH4_R_Tank` |
 | BLE connections | 1 central (assumed). |
 | Calibration on BLE disconnect | **Cancel the session immediately.** |
 | Calibration I2C | Use the vendor host-MCU handshake reconstructed in [vendor-i2c-notes.md](vendor-i2c-notes.md). Do **not** use PRG / 9.2 V / `dealprg`. |

@@ -12,7 +12,7 @@ ESP-IDF C firmware on a LilyGO TTGO T-Energy (ESP32-WROVER-B) will:
    handshake (`0xCA` read-sample / `0x8C` write-threshold). Never use PRG or
    9.2 V.
 3. Expose readings, health, and calibration actions over BLE GATT as
-   `ECHH4 Right Tank Level`.
+   `ECHH4_R_Tank`.
 4. Be operated from a single `web/index.html` file hosted on a remote HTTPS
    (or localhost) server using Web Bluetooth.
 
@@ -33,7 +33,7 @@ Locked choices: [decisions.md](decisions.md). Vendor I2C reconstruction:
 | BLE UUID contract | **Draft only** (Phase 0) |
 | Web client | **Not present** (planned `web/index.html`) |
 | Wi-Fi requirement | None; should remain disabled |
-| GAP name | Locked: `ECHH4 Right Tank Level` |
+| GAP name | Locked: `ECHH4_R_Tank` |
 | BLE pairing | Locked: open GATT, no bonding |
 | Disconnect mid-calibration | Locked: cancel immediately |
 
@@ -47,8 +47,8 @@ starts.
 | --- | --- | --- | --- |
 | 0 | [00-foundations.md](00-foundations.md) | Architecture, BLE contract freeze, Wi-Fi off | In progress: `PROTOCOL.md` draft |
 | 1 | [01-sensor-reading.md](01-sensor-reading.md) | Structured, periodic, health-aware sensor reads | In progress: modular sampler implemented |
-| 2 | [02-calibration.md](02-calibration.md) | 3-step state machine using reported `0xCA`/`0x8C` | After Phase 1; first hardware proof of handshake |
-| 3 | [03-ble.md](03-ble.md) | BLE peripheral, GATT service, no Wi-Fi | After Phase 0 contract + Phase 1 task split |
+| 2 | [02-calibration.md](02-calibration.md) | 3-step state machine using reported `0xCA`/`0x8C` | Implemented but deferred from BLE; hardware persistence unverified |
+| 3 | [03-ble.md](03-ble.md) | BLE peripheral, GATT service, no Wi-Fi | Implemented; hardware/client validation pending |
 | 4 | [04-web-client.md](04-web-client.md) | `web/index.html` for remote HTTPS host | After Phase 3 UUID freeze |
 | 5 | [05-integration.md](05-integration.md) | End-to-end checks, docs, leftover hello_world cleanup | After Phases 1–4 |
 
@@ -83,7 +83,7 @@ See also [SENSOR.md](../SENSOR.md) section 8 and
 
 ### Decided in this session
 
-See [decisions.md](decisions.md): open GATT, name `ECHH4 Right Tank Level`,
+See [decisions.md](decisions.md): open GATT, name `ECHH4_R_Tank`,
 HTML in `web/index.html`, cancel calibration on BLE disconnect, no Wi-Fi.
 
 ### Still optional / later
@@ -108,9 +108,8 @@ HTML in `web/index.html`, cancel calibration on BLE disconnect, no Wi-Fi.
    tooling is inconvenient.
 4. **Freeze a written BLE binary contract** in `PROTOCOL.md` before coding
    characteristics. Keep UUIDs identical in firmware and `web/index.html`.
-   GAP name is `ECHH4 Right Tank Level` (BLE name length is limited; confirm
-   it advertises fully or use a shorter complete name plus this as the
-   GAP device name).
+   GAP name is `ECHH4_R_Tank`; it is sent in the scan response alongside the
+   service UUID in the primary advertisement.
 5. **Split `main.c` into components** (`i2c_bus`, `sensor`, `app_ble`) with a
    FreeRTOS sampling task and a queue/event group so BLE callbacks never block
    on I2C.
